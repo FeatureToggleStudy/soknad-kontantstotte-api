@@ -6,13 +6,19 @@ import no.nav.kontantstotte.api.rest.dto.InnsendingsResponsDto;
 import no.nav.kontantstotte.innsending.ArkivInnsendingService;
 import no.nav.kontantstotte.innsending.MottakInnsendingService;
 import no.nav.kontantstotte.innsending.Soknad;
+import no.nav.kontantstotte.innsending.steg.Person;
 import no.nav.security.oidc.api.ProtectedWithClaims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.ws.rs.core.MediaType;
+
+import static no.nav.kontantstotte.innlogging.InnloggingUtils.hentFnrFraToken;
 
 @RestController
 @RequestMapping("api/sendinn")
@@ -38,6 +44,8 @@ public class InnsendingController {
             return ResponseEntity.badRequest().build();
         }
         soknad.markerInnsendingsTidspunkt();
+        final var fnr = hentFnrFraToken();
+        soknad.setPerson(new Person(fnr, null, null));
         soknadSendtInn.increment();
         arkivInnsendingService.sendInnSoknad(soknad);
         mottakInnsendingService.sendInnSoknad(soknad);
